@@ -29,10 +29,15 @@ jobs:
       run: |
         aws eks update-kubeconfig --name my-cluster --region us-east-1
 
-    # 4. Deploy to Kubernetes
-    - name: Deploy to EKS
+    # 4. Deploy FastAPI to Kubernetes
+    - name: Deploy FastAPI to EKS
       run: |
-        # Update the image in your deployment to the latest one you just pushed
-        kubectl set image deployment/fastapi-deployment fastapi-container=126202968095.dkr.ecr.us-east-1.amazonaws.com/fastapi-app:latest --record
-        # Wait for the rollout to finish so the deployment is fully updated
+        kubectl apply -f k8s/deployment.yml
+        kubectl apply -f k8s/service.yml
+
+        # Wait for the deployment rollout to complete
         kubectl rollout status deployment/fastapi-deployment
+
+        # Print the public LoadBalancer URL
+        echo "Public URL:"
+        kubectl get svc fastapi-service -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'
