@@ -6,8 +6,10 @@ on:
       - main
       - master  # adjust if your default branch is master
 
+ 
+
 jobs:
-  test:
+  test-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
@@ -31,5 +33,33 @@ jobs:
     # 4. Run pytest
     - name: Run tests
       run: |
-        # Run pytest from project root
         PYTHONPATH=. uv run pytest app/tests/test_main.py --maxfail=1 --disable-warnings -q
+
+    # 5. Configure AWS credentials (make sure you add these as GitHub secrets)
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1
+
+    # 6. Login to ECR
+    - name: Login to Amazon ECR
+      id: ecr-login
+      run: |
+        aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 126202968095.dkr.ecr.us-east-1.amazonaws.com
+
+    # 7. Build Docker image
+    - name: Build Docker image
+      run: |
+        docker build -t fastapi-app .
+
+    # 8. Tag Docker image for ECR
+    - name: Tag Docker image
+      run: |
+        docker tag fastapi-app:latest 126202968095.dkr.ecr.us-east-1.amazonaws.com/fastapi-app:latest
+
+    # 9. Push Docker image to ECR
+    - name: Push Docker image to ECR
+      run: |
+        docker push 126202968095.dkr.ecr.us-east-1.amazonaws.com/fastapi-app:latest
