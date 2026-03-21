@@ -26,10 +26,10 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install uv
-        uv add pyproject
+        uv sync
 
     # 4. Run pytest
     - name: Run tests
       run: |
         # Run pytest from project root
-        python3 -m pytest app/tests/test_main.py --maxfail=1 --disable-warnings -q
+        PYTHONPATH=. uv run pytest app/tests/test_main.py --maxfail=1 --disable-warnings -q
