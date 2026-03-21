@@ -10,6 +10,7 @@ on:
 
 jobs:
   test-and-deploy:
+    environment: staging
     runs-on: ubuntu-latest
 
     steps:
